@@ -6,9 +6,69 @@ from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QTe
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import numpy as np
+import datetime as dt
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
+
+
+import random
+
+class SubplotAnimator:
+    def __init__(self, parent=None, width=10, height=8, dpi=100):
+        self.fig, (self.ax1, self.ax2) = plt.subplots(2, 1, figsize=(width, height), dpi=dpi)
+        self.xs1, self.ys1 = [], []
+        self.xs2, self.ys2 = [], []
+        self.counter = 0
+        self.ax1.set_title('Plot 1')
+        self.ax1.set_ylabel('Temperature (deg C)')
+        self.ax2.set_title('Plot 2')
+        self.ax2.set_ylabel('Temperature (deg C)')
+        plt.subplots_adjust(hspace=0.5)
+
+    def start_animation(self):
+        self.anim = animation.FuncAnimation(self.fig, self._update_animation, init_func=self._init_animation, interval=100)
+        plt.show()
+
+    def _init_animation(self):
+        self.line1, = self.ax1.plot([], [])
+        self.line2, = self.ax2.plot([], [])
+        return self.line1, self.line2
+
+    def _update_animation(self, i):
+        # Random values from 25 to 30 for the first plot
+        self.counter = self.counter + 1
+        temp_c1 = random.uniform(25, 50)
+        self.xs1.append(self.counter)
+        self.ys1.append(temp_c1)
+
+        # Random values from 20 to 25 for the second plot
+        temp_c2 = random.uniform(20, 50)
+        self.xs2.append(self.counter)
+        self.ys2.append(temp_c2)
+
+        # Limit x and y lists to 20 items
+        self.xs1 = self.xs1[-20:]
+        self.ys1 = self.ys1[-20:]
+        self.xs2 = self.xs2[-20:]
+        self.ys2 = self.ys2[-20:]
+
+        # Update plot
+        self.line1.set_data(self.xs1, self.ys1)
+        self.line2.set_data(self.xs2, self.ys2)
+        self.update_plot()
+
+        return self.line1, self.line2
+
+    def update_plot(self):
+        # Format plot
+        self.ax1.set_xlim(max(0, self.counter-20), self.counter+2)
+        self.ax1.set_ylim(min(self.ys1)-1, max(self.ys1)+1)
+        self.ax2.set_xlim(max(0, self.counter-20), self.counter+2)
+        self.ax2.set_ylim(min(self.ys2)-1, max(self.ys2)+1)
+
 
 class LivePlot(FigureCanvas):
     def __init__(self, parent=None, width=5, height=4, dpi=100):
@@ -102,7 +162,9 @@ class MainWindow(QWidget):
         live_plot.show()
 
     def Both_clicked(self):
-        #treba napravit da se prikazuju 2 grafa u istom prozoru ili kako god, sam da budu dva grafa
+        subplot_animator = SubplotAnimator()
+        subplot_animator.start_animation()
+        plt.show()
 
 
 if __name__ == '__main__':
